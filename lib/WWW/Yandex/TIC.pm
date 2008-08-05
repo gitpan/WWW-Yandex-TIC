@@ -9,7 +9,7 @@ use vars qw($VERSION);
 
 use LWP::UserAgent;
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 sub new {
 	my $class = shift;
@@ -26,22 +26,19 @@ sub get {
 	return unless defined $domain;
 
 	my $resp = $self->{ua}->get(sprintf('http://search.yaca.yandex.ru/yca/cy/ch/%s/', $domain));
+	my $tic = undef;
 
-	if ($resp->is_success && $resp->content =~ /"http:\/\/www.yandex.ru\/yandsearch\/\?text=&Link=[^"]*$domain[^"]*&ci=(\d+)[^"]*"/i) {
-		if (wantarray) {
-			return ($1, $resp);
-		}
-		else {
-			return $1;
+	if ($resp->is_success) {
+		if ($resp->content =~ /<td class="current"[^>]*>((?:(?!<\/td>).)*)<\/td>\n<td[^>]*>((?:(?!<\/td>).)*)<\/td>\n<td[^>]*>((?:(?!<\/td>).)*)<\/td>\n<td[^>]*>((?:(?!<\/td>).)*)<\/td>/si) {
+			$tic = $4;
 		}
 	}
+
+	if (wantarray) {
+		return ($tic, $resp);
+	}
 	else {
-		if (wantarray) {
-			return (undef, $resp);
-		}
-		else {
-			return;
-		}
+		return $tic;
 	}
 }
 
@@ -116,6 +113,7 @@ If you find any, please report ;)
 =head1 AUTHOR
 
 Dmitry Bashlov F<E<lt>bashlov@cpan.orgE<gt>>.
+http://bashlov.ru
 
 =head1 COPYRIGHT
 
