@@ -9,7 +9,13 @@ use vars qw($VERSION);
 
 use LWP::UserAgent;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
+
+my $regexps = [
+	qr|(?is)<p class="errmsg">.*?<b>[^<]+? &#151; (\d+)|,
+	qr|(?is)<p class="errmsg">.*?<b>[^<]+? 1(\d+).|, # zero -)
+	qr|(?is)<tr valign="top"[^<]+<td class="current".+?\/td>[^<]+(?:<td .+?\/td>[^<]+){2}?<td\D+(\d+)|,
+];
 
 sub new {
 	my $class = shift;
@@ -29,8 +35,11 @@ sub get {
 	my $tic = undef;
 
 	if ($resp->is_success) {
-		if ($resp->content =~ /<td class="current"[^>]*>((?:(?!<\/td>).)*)<\/td>\n<td[^>]*>((?:(?!<\/td>).)*)<\/td>\n<td[^>]*>((?:(?!<\/td>).)*)<\/td>\n<td[^>]*>((?:(?!<\/td>).)*)<\/td>/si) {
-			$tic = $4;
+		foreach my $rx (@$regexps) {
+			if ($resp->content =~ /$rx/) {
+				$tic = $1;
+				last;
+			}
 		}
 	}
 
@@ -112,12 +121,14 @@ If you find any, please report ;)
 
 =head1 AUTHOR
 
-Dmitry Bashlov F<E<lt>bashlov@cpan.orgE<gt>>.
-http://bashlov.ru
+Dmitry Bashlov F<E<lt>bashlov@cpan.orgE<gt>> http://bashlov.ru.
+Ivan Baktsheev F<E<lt>dot.and.thing@gmail.comE<gt>>.
+
 
 =head1 COPYRIGHT
 
-Copyright 2005, Dmitry Bashlov, All Rights Reserved.
+Copyright 2005, Dmitry Bashlov,
+Copyright 2008, Ivan Baktsheev
 
 You may use, modify, and distribute this package under the
 same terms as Perl itself.

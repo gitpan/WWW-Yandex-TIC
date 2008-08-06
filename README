@@ -13,8 +13,9 @@ Installation is simple:
 
 If you have questions mail to bashlov@cpan.org.
 
-Copyright 2005 Dmitry Bashlov. 
-http://bashlov.ru
+Copyright 2005, Dmitry Bashlov http://bashlov.ru
+Copyright 2008, Ivan Baktsheev
+
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
