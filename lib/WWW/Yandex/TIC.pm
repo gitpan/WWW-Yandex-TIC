@@ -8,8 +8,12 @@ use warnings;
 use vars qw($VERSION);
 
 use LWP::UserAgent;
+use HTTP::Headers;
 
-$VERSION = '0.04';
+# we try to parse yandex bar info
+# on failure we must parse yandex catalog page
+
+$VERSION = '0.05';
 
 my $regexps = [
 	qr|(?is)<p class="errmsg">.*?<b>[^<]+? &#151; (\d+)|,
@@ -21,38 +25,74 @@ sub new {
 	my $class = shift;
 	my %par = @_;
 	my $self;
-
-	$self->{ua} = LWP::UserAgent->new(agent => $par{agent} || 'Bond, James Bond/0.07') or return;
-	$self->{ua}->proxy('http', $par{proxy}) if $par{proxy};
+	
+	# config overrided by parameters
+	my $ua = $self->{ua} = LWP::UserAgent->new;
+	
+	my $proxy = delete $par{proxy};
+	
+	foreach my $k (keys %par) {
+		$ua->$k ($par{$k});
+	}
+	
+	if ($proxy) {
+		# support for old interface
+		$ua->proxy ('http', $proxy);
+	}
+	
 	bless($self, $class);
 }
 
-sub get {
-	my ($self, $domain) = @_;
-	return unless defined $domain;
+sub user_agent {
+	shift->{ua};
+}
 
-	my $resp = $self->{ua}->get(sprintf('http://search.yaca.yandex.ru/yca/cy/ch/%s/', $domain));
-	my $tic = undef;
+sub request_uri {
+	my ($self, $url) = @_;
+
+	my $query = "http://search.yaca.yandex.ru/yca/cy/ch/$url/";
+
+	return $query;
+}
+
+sub get {
+	my ($self, $url) = @_;
+
+	my $query = $self->request_uri ($url);
+
+	my $resp = $self->{ua}->get($query);
 
 	if ($resp->is_success) {
+		
+		my $content = $resp->content;
+		
+		my $tic = undef;
+		
+		my $c = 0;
+		
 		foreach my $rx (@$regexps) {
-			if ($resp->content =~ /$rx/) {
+			if ($content =~ /$rx/) {
 				$tic = $1;
 				last;
 			}
 		}
-	}
 
-	if (wantarray) {
-		return ($tic, $resp);
-	}
-	else {
-		return $tic;
+		if (wantarray) {
+			return ($tic, $resp);
+		} else {
+			return $tic;
+		}
+
+	} else {
+		if (wantarray) {
+			return (undef, $resp);
+		} else {
+			return;
+		}
 	}
 }
 
 1;
-
 
 __END__
 
@@ -83,17 +123,20 @@ It uses C<LWP::UserAgent> for making request to Google.
 =item  $tic = WWW::Yandex::TIC->new(%options);
 
 This method constructs a new C<WWW::Yandex::TIC> object and returns it.
-Key/value pair arguments may be provided to set up the initial state.
-The following options is correspond to attribute methods described below:
+
+=item  $ua = $tic->user_agent;
+
+This method returns constructed C<LWP::UserAgent> object.
+You can configure object before making requests. 
+Default configuration described below:
 
    KEY                     DEFAULT
    -----------             --------------------
-   agent                   "Bond, James Bond/0.07"
-   proxy                   undef
+   agent                   "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.0.1) Gecko/2008070206 Firefox/3.0.1"
+   default_headers         "Accept-Charset: utf-8;q=0.7,*;q=0.7"
 
-C<agent> specifies the header 'User-Agent' when querying Yandex.  If
-the C<proxy> option is passed in, requests will be made through
-specified proxy. 
+C<agent> specifies the header 'User-Agent' when querying Yandex.
+C<default_headers> is a C<HTTP::Headers> object. See C<LWP::UserAgent>.
 
 =back
 
@@ -124,10 +167,9 @@ If you find any, please report ;)
 Dmitry Bashlov F<E<lt>bashlov@cpan.orgE<gt>> http://bashlov.ru.
 Ivan Baktsheev F<E<lt>dot.and.thing@gmail.comE<gt>>.
 
-
 =head1 COPYRIGHT
 
-Copyright 2005, Dmitry Bashlov,
+Copyright 2005, Dmitry Bashlov
 Copyright 2008, Ivan Baktsheev
 
 You may use, modify, and distribute this package under the
