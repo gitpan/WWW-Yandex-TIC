@@ -13,7 +13,7 @@ use HTTP::Headers;
 # we try to parse yandex bar info
 # on failure we must parse yandex catalog page
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 my $regexps = [
 	qr|(?is)<p class="errmsg">.*?<b>[^<]+? &#151; (\d+)|,
@@ -103,7 +103,7 @@ WWW::Yandex::TIC - Query Yandex Thematic Index of Citing (TIC) for domain
 =head1 SYNOPSIS
 
  use WWW::Yandex::TIC;
- my $ytic = WWW::Yandex::TIC;
+ my $ytic = WWW::Yandex::TIC->new;
  print $ytic->get('www.yandex.ru'), "\n";
 
 =head1 DESCRIPTION
@@ -114,7 +114,7 @@ querying Yandex Thematic Index of Citing (TIC) for domain.
 To use it, you should create C<WWW::Yandex::TIC> object and use its
 method get(), to query TIC for domain.
 
-It uses C<LWP::UserAgent> for making request to Google.
+It uses C<LWP::UserAgent> for making request to Yandex.
 
 =head1 CONSTRUCTOR METHOD
 
@@ -170,7 +170,7 @@ Ivan Baktsheev F<E<lt>dot.and.thing@gmail.comE<gt>>.
 =head1 COPYRIGHT
 
 Copyright 2005, Dmitry Bashlov
-Copyright 2008, Ivan Baktsheev
+Copyright 2008-2009, Ivan Baktsheev
 
 You may use, modify, and distribute this package under the
 same terms as Perl itself.
