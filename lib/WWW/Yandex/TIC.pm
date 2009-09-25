@@ -13,10 +13,10 @@ use HTTP::Headers;
 # we try to parse yandex bar info
 # on failure we must parse yandex catalog page
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 my $regexps = [
-	qr|(?is)<p class="errmsg">.*?<b>[^<]+? &#151; (\d+)|,
+	qr/(?is)<p class="errmsg">.*?<b>[^<]+? &(?:#151|mdash); (\d+)/,
 	qr|(?is)<p class="errmsg">.*?<b>[^<]+? 1(\d+).|, # zero -)
 	qr|(?is)<tr valign="top"[^<]+<td class="current".+?\/td>[^<]+(?:<td .+?\/td>[^<]+){2}?<td\D+(\d+)|,
 ];
